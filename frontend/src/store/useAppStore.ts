@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import type {
   Difficulty, Level, AgentStatus, TabId,
   ProblemData, Message, AgentState, AnalysisResult, SystemDesignResult,
-  SimilarProblem, YouTubeVideo,
+  SimilarProblem, YouTubeVideo, LeetCodeUser, LeetCodeProgress,
 } from './types'
 
 interface AppStore {
@@ -40,6 +40,12 @@ interface AppStore {
   systemDesignResult: SystemDesignResult | null
   systemDesignLoading: boolean
 
+  // LeetCode Account
+  lcConnected: boolean
+  lcUser: LeetCodeUser | null
+  lcProgress: LeetCodeProgress | null
+  lcConnecting: boolean
+
   // Actions
   setDifficulty: (d: Difficulty) => void
   setLevel: (l: Level) => void
@@ -57,6 +63,9 @@ interface AppStore {
   setSystemDesignResult: (r: SystemDesignResult | null) => void
   setSystemDesignLoading: (b: boolean) => void
   resetAgents: () => void
+  setLcConnected: (connected: boolean, user?: LeetCodeUser | null) => void
+  setLcProgress: (p: LeetCodeProgress | null) => void
+  setLcConnecting: (b: boolean) => void
 }
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -86,6 +95,11 @@ export const useAppStore = create<AppStore>((set) => ({
 
   systemDesignResult: null,
   systemDesignLoading: false,
+
+  lcConnected: false,
+  lcUser: null,
+  lcProgress: null,
+  lcConnecting: false,
 
   setDifficulty: (d) => set({ difficulty: d }),
   setLevel: (l) => set({ level: l }),
@@ -131,4 +145,12 @@ export const useAppStore = create<AppStore>((set) => ({
   resetAgents: () => set({
     agentStates: { analyst: 'idle', strategy: 'idle', code: 'idle', resource: 'idle' },
   }),
+
+  setLcConnected: (connected, user) => set({
+    lcConnected: connected,
+    lcUser: user ?? null,
+    ...(!connected ? { lcProgress: null } : {}),
+  }),
+  setLcProgress: (p) => set({ lcProgress: p }),
+  setLcConnecting: (b) => set({ lcConnecting: b }),
 }))

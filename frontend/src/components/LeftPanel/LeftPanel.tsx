@@ -1,4 +1,5 @@
 import React from 'react'
+import LeetCodeConnect from './LeetCodeConnect'
 import FetchSection from './FetchSection'
 import ConfigSection from './ConfigSection'
 import AgentStatusPanel from './AgentStatusPanel'
@@ -16,6 +17,7 @@ export default function LeftPanel({ onAnalyze }: { onAnalyze: () => void }) {
       display: 'flex', flexDirection: 'column',
       overflowY: 'auto',
     }}>
+      <LeetCodeConnect />
       <FetchSection />
       <ConfigSection />
       <div style={{ padding: 13, borderBottom: '1px solid var(--border)' }}>

@@ -1,5 +1,8 @@
 """
-LeetCode Service — Fetches problem data from LeetCode via public API proxy.
+LeetCode Service — Fetches problem data from LeetCode.
+
+Primary: Direct LeetCode GraphQL API (uses connected account if available).
+Fallback: Public proxy API when GraphQL fails.
 Caches results in PostgreSQL to avoid repeated fetches.
 """
 
@@ -8,17 +11,44 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.problem import Problem
+from app.services.leetcode_graphql import graphql_fetch_problem, graphql_fetch_problem_by_number
 
 LEETCODE_API = "https://leetcode-api-pied.vercel.app/problem"
 
 
+def _get_session_credentials() -> tuple[str | None, str | None]:
+    """Get active LeetCode session if connected."""
+    try:
+        from app.routers.leetcode_auth import get_active_session
+        session = get_active_session()
+        if session:
+            return session.get("session_cookie"), session.get("csrf_token")
+    except Exception:
+        pass
+    return None, None
+
+
 async def fetch_from_leetcode(slug_or_id: str) -> dict:
-    """Fetch problem from LeetCode API proxy."""
+    """Fetch problem — tries GraphQL first, falls back to proxy API."""
     cleaned = slug_or_id.strip().lower().replace(" ", "-")
+    session_cookie, csrf_token = _get_session_credentials()
+
+    # Try direct GraphQL API first
+    try:
+        if cleaned.isdigit():
+            return await graphql_fetch_problem_by_number(int(cleaned), session_cookie, csrf_token)
+        else:
+            return await graphql_fetch_problem(cleaned, session_cookie, csrf_token)
+    except Exception:
+        pass  # Fall through to proxy
+
+    # Fallback: proxy API
     url = f"{LEETCODE_API}/{cleaned}"
 
     async with httpx.AsyncClient(timeout=15) as client:
         resp = await client.get(url)
+        if resp.status_code == 404:
+            raise ValueError(f"Problem '{slug_or_id}' not found on LeetCode. Check the slug or number.")
         resp.raise_for_status()
         data = resp.json()
 
@@ -28,8 +58,8 @@ async def fetch_from_leetcode(slug_or_id: str) -> dict:
     title = data.get("title") or data.get("question_title") or slug_or_id
     slug = data.get("title_slug") or data.get("slug") or cleaned
     difficulty = (data.get("difficulty") or "unknown").lower()
-    qid = data.get("frontend_question_id") or data.get("question_id")
-    raw_tags = data.get("topic_tags") or data.get("topicTags") or []
+    qid = data.get("questionFrontendId") or data.get("frontend_question_id") or data.get("question_id") or data.get("questionId")
+    raw_tags = data.get("topicTags") or data.get("topic_tags") or []
     tags = [t["name"] if isinstance(t, dict) else str(t) for t in raw_tags]
 
     raw_content = data.get("content") or data.get("body") or ""

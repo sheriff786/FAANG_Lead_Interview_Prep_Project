@@ -63,3 +63,27 @@ export interface SystemDesignResult {
   deep_dive: string
   youtube_links: YouTubeVideo[]
 }
+
+// ── LeetCode Account Connection ──
+
+export interface LeetCodeUser {
+  username: string
+  real_name: string
+  avatar: string
+  is_premium: boolean
+}
+
+export interface LeetCodeProgress {
+  easy: { solved: number; total: number }
+  medium: { solved: number; total: number }
+  hard: { solved: number; total: number }
+  all: { solved: number; total: number }
+}
+
+export interface LeetCodeSubmission {
+  id: string | null
+  title: string
+  slug: string
+  timestamp: string
+  language: string
+}

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import init_db
 from app.routers import leetcode, agents, system_design, youtube
+from app.routers import leetcode_auth
 
 
 @asynccontextmanager
@@ -37,6 +38,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(leetcode.router)
+app.include_router(leetcode_auth.router)
 app.include_router(agents.router)
 app.include_router(system_design.router)
 app.include_router(youtube.router)
