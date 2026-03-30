@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FAANG Interview Prep — Architecture &amp; Flow Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0a0a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%);
+            border-bottom: 2px solid #1e3a5f;
+        }
+        .hero h1 {
+            font-size: 2.4rem;
+            background: linear-gradient(135deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .hero p { color: #888; font-size: 1.1rem; }
+        .badge {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            color: #00d4ff;
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #1e3a5f;
+            padding: 12px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        nav a {
+            color: #00d4ff;
+            text-decoration: none;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        nav a:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+        .diagram-section {
+            margin-bottom: 60px;
+            background: #0f0f2a;
+            border-radius: 16px;
+            border: 1px solid #1e3a5f;
+            overflow: hidden;
+        }
+        .diagram-header {
+            padding: 24px 30px 16px;
+            border-bottom: 1px solid #1a1a3e;
+        }
+        .diagram-header h2 {
+            font-size: 1.5rem;
+            color: #00d4ff;
+            margin-bottom: 6px;
+        }
+        .diagram-header p { color: #888; font-size: 0.95rem; }
+        .diagram-number {
+            display: inline-block;
+            width: 32px; height: 32px;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-right: 10px;
+        }
+        .mermaid {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            background: #0d0d25;
+        }
+        .mermaid svg { max-width: 100%; height: auto; }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .tech-card {
+            background: rgba(30, 58, 95, 0.3);
+            border: 1px solid #1e3a5f;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .tech-card h3 { color: #00ff88; font-size: 1rem; margin-bottom: 10px; }
+        .tech-card ul { list-style: none; padding: 0; }
+        .tech-card li { padding: 4px 0; color: #ccc; font-size: 0.9rem; }
+        .tech-card li::before { content: "▸ "; color: #00d4ff; }
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: #555;
+            border-top: 1px solid #1a1a3e;
+        }
+        footer a { color: #00d4ff; text-decoration: none; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 1.6rem; }
+            .mermaid { padding: 15px; }
+            nav a { font-size: 0.75rem; padding: 4px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>⚡ FAANG/MAANG Interview Prep Platform</h1>
+    <p>Multi-Agent AI-Powered LeetCode Coach &amp; System Design Preparation</p>
+    <span class="badge">REACT · FASTAPI · LANGCHAIN · POSTGRESQL · MULTI-AGENT</span>
+</div>
+
+<nav>
+    <a href="#arch">System Architecture</a>
+    <a href="#folder">Folder Structure</a>
+    <a href="#pipeline">Agent Pipeline</a>
+    <a href="#sysdesign">System Design Flow</a>
+    <a href="#er">Database ER</a>
+    <a href="#components">Frontend Components</a>
+    <a href="#sequence">API Sequence</a>
+    <a href="#llm">LLM Abstraction</a>
+    <a href="#docker">Docker Compose</a>
+    <a href="#cloud">Cloud Deployment</a>
+    <a href="#patterns">Pattern Detection</a>
+    <a href="#roadmap">Future Roadmap</a>
+    <a href="#tech">Tech Stack</a>
+</nav>
+
+<div class="container">
+
+    <!-- 1. System Architecture -->
+    <section class="diagram-section" id="arch">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">1</span>High-Level System Architecture</h2>
+            <p>Complete end-to-end data flow: Browser → React → FastAPI → Agents → LLM Providers → PostgreSQL</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    USER["👤 User (Browser)"]
+
+    subgraph CLIENT["🖥️ React Frontend :5173"]
+        direction LR
+        LP["Left Panel\n• Fetch Problem\n• Config\n• Agent Status"]
+        CA["Chat Area\n• 5 Tabs\n• Messages\n• Follow-up"]
+        STORE["Zustand Store\n• Problem Data\n• Agent States\n• Analysis"]
+        LP --- STORE
+        CA --- STORE
+    end
+
+    subgraph API_LAYER["⚙️ FastAPI Backend :8000"]
+        direction TB
+        MAIN["main.py\nCORS + Lifespan"]
+
+        subgraph ROUTES["API Routes"]
+            direction LR
+            R1["/api/leetcode/fetch"]
+            R2["/api/agents/analyze"]
+            R3["/api/system-design"]
+            R4["/api/youtube/search"]
+        end
+
+        subgraph AGENT_PIPE["🤖 Agent Pipeline"]
+            direction LR
+            AG1["🔍 Problem\nAnalyst"] --> AG2["🎯 Strategy\nCoach"]
+            AG2 --> AG3["💻 Code\nMentor"]
+            AG3 --> AG4["📚 Resource\nFinder"]
+        end
+
+        AG5["🏗️ System\nDesign Agent"]
+
+        subgraph SERVICES["Services"]
+            direction LR
+            SVC1["LLM Service\n(LangChain)"]
+            SVC2["LeetCode\nService"]
+            SVC3["YouTube\nService"]
+        end
+
+        UTILS["Pattern Detection\n13 regex rules\n60+ similar problems"]
+
+        MAIN --> ROUTES
+        R2 --> AGENT_PIPE
+        R3 --> AG5
+        AGENT_PIPE --> SVC1
+        AG5 --> SVC1
+        R1 --> SVC2
+        R4 --> SVC3
+        R2 --> UTILS
+    end
+
+    subgraph DB["🗄️ PostgreSQL :5432"]
+        direction LR
+        T1[("problems")]
+        T2[("analyses")]
+        T3[("system_design\n_topics")]
+        T4[("chat_messages")]
+    end
+
+    subgraph LLM["🧠 LLM Providers"]
+        direction LR
+        L1["OpenAI\nGPT-4o"]
+        L2["Anthropic\nClaude 4"]
+        L3["Google\nGemini 1.5"]
+    end
+
+    subgraph EXT["🌐 External APIs"]
+        direction LR
+        E1["LeetCode\nProxy API"]
+        E2["YouTube\nSearch"]
+    end
+
+    USER -->|"http://localhost:5173"| CLIENT
+    CLIENT -->|"REST API (Axios)"| API_LAYER
+    API_LAYER -->|"SQLAlchemy Async"| DB
+    SVC1 -->|"LangChain"| LLM
+    SVC2 -->|"httpx"| E1
+    SVC3 --> E2
+        </div>
+    </section>
+
+    <!-- 2. Folder Structure -->
+    <section class="diagram-section" id="folder">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">2</span>Project Folder Structure</h2>
+            <p>Complete directory tree: ~61 files across backend and frontend</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    ROOT["📁 FAANG_Lead_Interview_Prep_Project"]
+
+    ROOT --> CONFIG_FILES["📄 Root Config\n.gitignore | docker-compose.yml\nREADME.md | LICENSE"]
+    ROOT --> BACKEND["📁 backend/"]
+    ROOT --> FRONTEND["📁 frontend/"]
+
+    subgraph BE["⚙️ BACKEND - Python FastAPI"]
+        direction TB
+        BACKEND --> BE_CONFIG["📄 Config\n.env | requirements.txt\nDockerfile | alembic.ini"]
+        BACKEND --> BE_APP["📁 app/"]
+
+        BE_APP --> BE_ENTRY["📄 Entry\nmain.py | config.py\ndatabase.py"]
+        BE_APP --> BE_AGENTS["📁 agents/ 5 Agents\nbase_agent.py\nproblem_analyst.py\nstrategy_coach.py\ncode_mentor.py\nresource_finder.py\nsystem_design_agent.py"]
+        BE_APP --> BE_MODELS["📁 models/ 4 Tables\nproblem.py | analysis.py\nsystem_design.py\nsession.py"]
+        BE_APP --> BE_SCHEMAS["📁 schemas/\nproblem.py\nsystem_design.py"]
+        BE_APP --> BE_ROUTERS["📁 routers/ 4 Routes\nleetcode.py | agents.py\nsystem_design.py\nyoutube.py"]
+        BE_APP --> BE_SERVICES["📁 services/\nllm_service.py\nleetcode_service.py\nyoutube_service.py"]
+        BE_APP --> BE_UTILS["📁 utils/\npattern_detection.py"]
+    end
+
+    subgraph FE["🖥️ FRONTEND - React TypeScript"]
+        direction TB
+        FRONTEND --> FE_CONFIG["📄 Config\npackage.json | tsconfig.json\nvite.config.ts | Dockerfile"]
+        FRONTEND --> FE_SRC["📁 src/"]
+
+        FE_SRC --> FE_ENTRY["📄 Entry\nmain.tsx | App.tsx\nindex.css"]
+        FE_SRC --> FE_API["📁 api/\nindex.ts | leetcode.ts\nagents.ts | systemDesign.ts"]
+        FE_SRC --> FE_STORE["📁 store/\ntypes.ts\nuseAppStore.ts"]
+        FE_SRC --> FE_HOOKS["📁 hooks/\nuseAgents.ts\nuseFollowUp.ts"]
+        FE_SRC --> FE_COMP["📁 components/"]
+
+        FE_COMP --> FE_HEADER["Header.tsx"]
+        FE_COMP --> FE_LEFT["📁 LeftPanel/ 5 files\nLeftPanel | FetchSection\nConfigSection\nAgentStatusPanel\nSessionProgress"]
+        FE_COMP --> FE_CHAT["📁 ChatArea/ 10 files\nChatArea | TabBar\nAnalysisTab | StrategyTab\nSimilarProblemsTab\nResourcesTab\nSystemDesignTab\nMessageBubble\nChatInput | QuickChips"]
+        FE_COMP --> FE_COMMON["📁 common/\nLoader.tsx"]
+    end
+        </div>
+    </section>
+
+    <!-- 3. Agent Pipeline -->
+    <section class="diagram-section" id="pipeline">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">3</span>Multi-Agent Analysis Pipeline</h2>
+            <p>Sequential 4-agent flow: each agent builds on previous context for coherent coaching</p>
+        </div>
+        <div class="mermaid">
+flowchart LR
+    INPUT["📝 User Input\nSlug or Problem\n+ Difficulty + Level"]
+
+    INPUT --> FETCH["🔗 Fetch Problem\nLeetCode API\n+ Cache in DB"]
+
+    FETCH --> A1["🔍 Agent 1\nProblem Analyst\n─────────────\nWhat it really asks\nEdge cases\nData structures\nWhy it is tricky"]
+
+    A1 --> A2["🎯 Agent 2\nStrategy Coach\n─────────────\nPattern ID\nStep-by-step plan\nMental model\nTrigger signals"]
+
+    A2 --> A3["💻 Agent 3\nCode Mentor\n─────────────\nPseudocode first\nPython solution\nTime and Space\nCommon mistakes"]
+
+    A3 --> A4["📚 Agent 4\nResource Finder\n─────────────\n7-day drill plan\nInterview script\nCompany info\nCore concepts"]
+
+    A4 --> PATTERN["🔎 Pattern\nDetection\n13 regex rules"]
+
+    PATTERN --> SIMILAR["📋 Similar\nProblems\n60+ curated"]
+    PATTERN --> YT["📺 YouTube\nSearch\nTutorials"]
+
+    SIMILAR --> RESULT["✅ Full Result\nDisplayed in\n5 UI tabs"]
+    YT --> RESULT
+    RESULT --> CACHE[("💾 Cache\nPostgreSQL")]
+        </div>
+    </section>
+
+    <!-- 4. System Design Flow -->
+    <section class="diagram-section" id="sysdesign">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">4</span>System Design Analysis Flow</h2>
+            <p>15 predefined topics with 4-stage AI analysis and caching</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    USER["👤 User selects topic\ne.g. Design URL Shortener"] --> CHECK{"Cached in DB?"}
+
+    CHECK -->|"Yes"| RETURN["Return cached result"]
+    CHECK -->|"No"| AGENT["🏗️ System Design Agent"]
+
+    AGENT --> REQ["① Requirements Gathering\nFunctional + Non-functional"]
+    REQ --> HLD["② High-Level Design\nComponents + Data Flow + APIs"]
+    HLD --> DEEP["③ Deep Dive\nScaling + DB Choice + Caching"]
+    DEEP --> TIPS["④ Interview Tips\nWhat to say + Time mgmt"]
+
+    TIPS --> YT["📺 YouTube Tutorials"]
+    TIPS --> SAVE[("💾 Save to DB")]
+    YT --> RESULT["✅ Complete Analysis"]
+    SAVE --> RESULT
+        </div>
+    </section>
+
+    <!-- 5. Database ER -->
+    <section class="diagram-section" id="er">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">5</span>Database Entity Relationship Diagram</h2>
+            <p>PostgreSQL 16 — 4 tables with async SQLAlchemy ORM</p>
+        </div>
+        <div class="mermaid">
+erDiagram
+    PROBLEMS ||--o{ ANALYSES : "has many"
+    PROBLEMS {
+        int id PK
+        int leetcode_id
+        string title
+        string slug UK
+        string difficulty
+        text content
+        json tags
+        datetime fetched_at
+    }
+
+    ANALYSES {
+        int id PK
+        int problem_id FK
+        string difficulty
+        string level
+        text analysis_text
+        text strategy_text
+        text code_text
+        text resource_text
+        string detected_pattern
+        datetime created_at
+    }
+
+    SYSTEM_DESIGN_TOPICS {
+        int id PK
+        string title UK
+        string category
+        text description
+        text requirements_text
+        text high_level_design
+        text deep_dive
+        string llm_provider
+        datetime created_at
+    }
+
+    CHAT_MESSAGES {
+        int id PK
+        uuid session_id
+        string role
+        string agent
+        text content
+        int message_order
+        datetime created_at
+    }
+        </div>
+    </section>
+
+    <!-- 6. Frontend Components -->
+    <section class="diagram-section" id="components">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">6</span>Frontend Component Tree</h2>
+            <p>React 18 component hierarchy with Zustand state management</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    APP["🏠 App.tsx - Root Layout"]
+
+    APP --> HEADER["📌 Header.tsx\nLogo + Title + Badge"]
+    APP --> LEFT
+    APP --> CHAT
+
+    subgraph LEFT["📋 LeftPanel"]
+        direction TB
+        LP["LeftPanel.tsx\nContainer + Analyze Btn"]
+        LP --> FETCH["FetchSection\nSlug/ID input\nManual paste"]
+        LP --> CONFIG["ConfigSection\nDifficulty\nLevel"]
+        LP --> STATUS["AgentStatusPanel\nWaiting/Running\nDone/Error"]
+        LP --> PROGRESS["SessionProgress\nProblems counter"]
+    end
+
+    subgraph CHAT["💬 ChatArea"]
+        direction TB
+        CA["ChatArea.tsx\nTab Layout"]
+        CA --> TABS["TabBar.tsx\n5 tab selector"]
+
+        TABS --> TAB1["AnalysisTab\nProblem Analyst"]
+        TABS --> TAB2["StrategyTab\nStrategy Coach"]
+        TABS --> TAB3["SimilarProblemsTab\nPattern matches"]
+        TABS --> TAB4["ResourcesTab\nDrill + YouTube"]
+        TABS --> TAB5["SystemDesignTab\nTopic + Analysis"]
+
+        CA --> BUBBLE["MessageBubble\nMarkdown + Code"]
+        CA --> CHIPS["QuickChips\n7 suggestions"]
+        CA --> INPUT["ChatInput\nFollow-up input"]
+    end
+        </div>
+    </section>
+
+    <!-- 7. API Sequence -->
+    <section class="diagram-section" id="sequence">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">7</span>API Request Sequence</h2>
+            <p>Complete user journey: fetch problem → analyze with 4 agents → follow-up chat</p>
+        </div>
+        <div class="mermaid">
+sequenceDiagram
+    actor User
+    participant FE as React Frontend
+    participant API as FastAPI Backend
+    participant LC as LeetCode API
+    participant LLM as LLM Provider
+    participant DB as PostgreSQL
+    participant YT as YouTube
+
+    User->>FE: Enter "two-sum"
+    FE->>API: POST /api/leetcode/fetch
+    API->>DB: Check cache
+    alt Not cached
+        API->>LC: Fetch problem
+        LC-->>API: Problem data
+        API->>DB: Save problem
+    end
+    API-->>FE: Problem details
+
+    User->>FE: Click Analyze
+    FE->>API: POST /api/agents/analyze
+
+    Note over API: Agent 1: Problem Analyst
+    API->>LLM: System + User prompt
+    LLM-->>API: Analysis text
+
+    Note over API: Agent 2: Strategy Coach
+    API->>LLM: System + User prompt
+    LLM-->>API: Strategy text
+
+    Note over API: Agent 3: Code Mentor
+    API->>LLM: System + User prompt
+    LLM-->>API: Code text
+
+    Note over API: Agent 4: Resource Finder
+    API->>LLM: System + User prompt
+    LLM-->>API: Resources text
+
+    API->>YT: Search tutorials
+    YT-->>API: Video results
+    API->>DB: Cache analysis
+    API-->>FE: Full analysis result
+    FE->>User: Display in 5 tabs
+
+    User->>FE: Ask follow-up
+    FE->>API: POST /api/agents/followup
+    API->>LLM: Context + question
+    LLM-->>API: Response
+    API-->>FE: Answer
+    FE->>User: Show in chat
+        </div>
+    </section>
+
+    <!-- 8. LLM Abstraction -->
+    <section class="diagram-section" id="llm">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">8</span>LLM Provider Abstraction Layer</h2>
+            <p>Switch between OpenAI, Anthropic, or Google by changing one env variable</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    AGENTS["All 5 Agents\nBaseAgent.run"] --> INVOKE["invoke_llm\nllm_service.py"]
+
+    INVOKE --> BUILD["_build_llm\nFactory Function"]
+
+    BUILD --> CHECK{"LLM_PROVIDER\nin .env"}
+
+    CHECK -->|"openai"| OPENAI["ChatOpenAI\nmodel: gpt-4o\ntemp: 0.4"]
+    CHECK -->|"anthropic"| ANTHROPIC["ChatAnthropic\nmodel: claude-sonnet-4-20250514\ntemp: 0.4"]
+    CHECK -->|"google"| GOOGLE["ChatGoogleGenerativeAI\nmodel: gemini-1.5-pro\ntemp: 0.4"]
+
+    OPENAI --> RESPONSE["LLM Response Text"]
+    ANTHROPIC --> RESPONSE
+    GOOGLE --> RESPONSE
+
+    RESPONSE --> OUT["Return to Agent\n then Router then Frontend"]
+        </div>
+    </section>
+
+    <!-- 9. Docker Compose -->
+    <section class="diagram-section" id="docker">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">9</span>Docker Compose Architecture</h2>
+            <p>3 containers orchestrated with health checks and dependency ordering</p>
+        </div>
+        <div class="mermaid">
+flowchart LR
+    subgraph DOCKER["🐳 Docker Compose"]
+        direction TB
+
+        subgraph PG["PostgreSQL"]
+            PG_IMG["postgres:16-alpine\nPort 5432"]
+            PG_VOL[("pgdata volume")]
+            PG_IMG --- PG_VOL
+        end
+
+        subgraph BEE["Backend"]
+            BE_IMG["python:3.12-slim\nPort 8000\nuvicorn app.main:app"]
+        end
+
+        subgraph FEE["Frontend"]
+            FE_IMG["node:20-alpine\nPort 5173\nnpm run dev"]
+        end
+
+        FEE -->|"depends_on"| BEE
+        BEE -->|"depends_on healthy"| PG
+    end
+
+    BROWSER["🌐 Browser"] -->|"localhost:5173"| FEE
+    BROWSER -->|"localhost:8000/docs"| BEE
+        </div>
+    </section>
+
+    <!-- 10. Cloud Deployment -->
+    <section class="diagram-section" id="cloud">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">10</span>Cloud Deployment Architecture (AWS)</h2>
+            <p>Production-ready deployment with CDN, load balancer, managed database</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    USER["👤 Users"] --> R53["Route 53\nDNS"]
+    R53 --> CF["CloudFront\nCDN"]
+    R53 --> ALB["Application\nLoad Balancer"]
+
+    CF --> S3["S3 Bucket\nReact SPA Build"]
+
+    ALB --> ECS["ECS Fargate\nFastAPI Container"]
+
+    ECS --> RDS["RDS PostgreSQL\nManaged DB"]
+    ECS --> SM["Secrets Manager\nAPI Keys"]
+    ECS --> LLM_EXT["LLM APIs\nOpenAI/Anthropic/Google"]
+
+    subgraph VPC["AWS VPC"]
+        ALB
+        ECS
+        RDS
+    end
+        </div>
+    </section>
+
+    <!-- 11. Pattern Detection -->
+    <section class="diagram-section" id="patterns">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">11</span>Pattern Detection Engine</h2>
+            <p>13 regex-based pattern categories with 60+ curated companion problems</p>
+        </div>
+        <div class="mermaid">
+flowchart TD
+    INPUT["Problem Text"] --> PD["🔎 Pattern Detection\n13 Regex Rules"]
+
+    PD --> P1["Intervals"]
+    PD --> P2["Greedy"]
+    PD --> P3["Sliding Window"]
+    PD --> P4["Two Pointers"]
+    PD --> P5["Binary Search"]
+    PD --> P6["Dynamic Programming"]
+    PD --> P7["BFS / Level-Order"]
+    PD --> P8["Backtracking"]
+    PD --> P9["DFS"]
+    PD --> P10["Heap / Priority Queue"]
+    PD --> P11["Stack / Monotonic"]
+    PD --> P12["Tree / BST"]
+    PD --> P13["Hash Map / Set"]
+
+    P1 --> SIM["📋 Similar Problems DB\n60+ curated companions"]
+    P2 --> SIM
+    P3 --> SIM
+    P4 --> SIM
+    P5 --> SIM
+    P6 --> SIM
+    P7 --> SIM
+    P8 --> SIM
+    P9 --> SIM
+    P10 --> SIM
+    P11 --> SIM
+    P12 --> SIM
+    P13 --> SIM
+        </div>
+    </section>
+
+    <!-- 12. Future Roadmap -->
+    <section class="diagram-section" id="roadmap">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">12</span>Future Enhancement Roadmap</h2>
+            <p>3-phase development plan with 18+ planned features</p>
+        </div>
+        <div class="mermaid">
+flowchart LR
+    subgraph P1["🟢 Phase 1 - Core"]
+        direction TB
+        P1A["Streaming SSE\nResponses"]
+        P1B["JWT Auth\nOAuth"]
+        P1C["Spaced\nRepetition"]
+        P1D["Problem\nBookmarking"]
+        P1E["Theme\nToggle"]
+    end
+
+    subgraph P2["🟡 Phase 2 - Advanced"]
+        direction TB
+        P2A["Code Execution\nSandbox"]
+        P2B["Mock Interview\nMode"]
+        P2C["Progress\nDashboard"]
+        P2D["Collaborative\nStudy"]
+        P2E["Behavioral\nInterview"]
+    end
+
+    subgraph P3["🔴 Phase 3 - Scale"]
+        direction TB
+        P3A["Weakness\nDetection AI"]
+        P3B["Company-Specific\nPrep"]
+        P3C["Multi-Language\nSolutions"]
+        P3D["Voice Interview\nPractice"]
+        P3E["Mobile App"]
+        P3F["RAG-Enhanced\nAgents"]
+    end
+
+    P1 --> P2 --> P3
+        </div>
+    </section>
+
+    <!-- Tech Stack Summary -->
+    <section class="diagram-section" id="tech">
+        <div class="diagram-header">
+            <h2><span class="diagram-number">13</span>Technology Stack Summary</h2>
+            <p>Complete technology breakdown across all layers</p>
+        </div>
+        <div class="tech-grid">
+            <div class="tech-card">
+                <h3>🖥️ Frontend</h3>
+                <ul>
+                    <li>React 18.3 — UI library</li>
+                    <li>TypeScript 5.5 — Type safety</li>
+                    <li>Vite 5.4 — Build tool + HMR</li>
+                    <li>Zustand 4.5 — State management</li>
+                    <li>Axios 1.7 — HTTP client</li>
+                    <li>react-markdown 9.0 — MD rendering</li>
+                    <li>react-syntax-highlighter — Code blocks</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>⚙️ Backend</h3>
+                <ul>
+                    <li>Python 3.12 — Core language</li>
+                    <li>FastAPI 0.115 — Async web framework</li>
+                    <li>SQLAlchemy 2.0 — Async ORM</li>
+                    <li>Pydantic 2.9 — Validation</li>
+                    <li>LangChain 0.3 — LLM abstraction</li>
+                    <li>Alembic 1.13 — DB migrations</li>
+                    <li>httpx 0.27 — Async HTTP</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🧠 LLM Providers</h3>
+                <ul>
+                    <li>OpenAI GPT-4o (default)</li>
+                    <li>Anthropic Claude Sonnet 4</li>
+                    <li>Google Gemini 1.5 Pro</li>
+                    <li>Switchable via .env variable</li>
+                    <li>LangChain unified interface</li>
+                    <li>temp=0.4, max_tokens=2048</li>
+                </ul>
+            </div>
+            <div class="tech-card">
+                <h3>🏗️ Infrastructure</h3>
+                <ul>
+                    <li>PostgreSQL 16 — Database</li>
+                    <li>Docker — Containerization</li>
+                    <li>Docker Compose — Orchestration</li>
+                    <li>asyncpg — Async PG driver</li>
+                    <li>Uvicorn — ASGI server</li>
+                    <li>AWS / Render / Railway — Deploy</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    <p>FAANG/MAANG Interview Prep Platform — Built with FastAPI, React, LangChain, PostgreSQL</p>
+    <p style="margin-top:8px">Open <a href="http://localhost:5173">localhost:5173</a> to use the app · <a href="http://localhost:8000/docs">localhost:8000/docs</a> for API docs</p>
+</footer>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+            darkMode: true,
+            background: '#0d0d25',
+            primaryColor: '#1e3a5f',
+            primaryTextColor: '#e0e0e0',
+            primaryBorderColor: '#00d4ff',
+            lineColor: '#00d4ff',
+            secondaryColor: '#0f3460',
+            tertiaryColor: '#1a1a3e',
+            fontFamily: 'Segoe UI, system-ui, sans-serif',
+            fontSize: '14px',
+            nodeBorder: '#00d4ff',
+            clusterBkg: '#0a0a23',
+            clusterBorder: '#1e3a5f',
+            edgeLabelBackground: '#0d0d25',
+            actorBkg: '#1e3a5f',
+            actorBorder: '#00d4ff',
+            actorTextColor: '#e0e0e0',
+            signalColor: '#00d4ff',
+            signalTextColor: '#e0e0e0',
+            noteBkgColor: '#1a1a3e',
+            noteTextColor: '#e0e0e0',
+            noteBorderColor: '#00d4ff',
+            activationBkgColor: '#1e3a5f',
+            activationBorderColor: '#00d4ff'
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+        sequence: { useMaxWidth: true, actorMargin: 80, mirrorActors: false }
+    });
+</script>
+
+</body>
+</html>
