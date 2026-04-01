@@ -6,6 +6,7 @@ import StrategyTab from './StrategyTab'
 import SimilarProblemsTab from './SimilarProblemsTab'
 import ResourcesTab from './ResourcesTab'
 import SystemDesignTab from './SystemDesignTab'
+import CodeTab from './CodeTab'
 import QuickChips from './QuickChips'
 import ChatInput from './ChatInput'
 
@@ -24,6 +25,7 @@ export default function ChatArea({ onFollowUp }: ChatAreaProps) {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {activeTab === 'analysis' && <AnalysisTab />}
         {activeTab === 'strategy' && <StrategyTab />}
+        {activeTab === 'code' && <CodeTab />}
         {activeTab === 'similar' && <SimilarProblemsTab />}
         {activeTab === 'resources' && <ResourcesTab />}
         {activeTab === 'systemdesign' && <SystemDesignTab />}

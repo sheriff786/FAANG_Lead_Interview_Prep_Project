@@ -1,7 +1,7 @@
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type Level = 'beginner' | 'intermediate' | 'advanced'
 export type AgentStatus = 'idle' | 'running' | 'done' | 'error'
-export type TabId = 'analysis' | 'strategy' | 'similar' | 'resources' | 'systemdesign'
+export type TabId = 'analysis' | 'strategy' | 'code' | 'similar' | 'resources' | 'systemdesign'
 
 export interface ProblemData {
   leetcode_id: number | null

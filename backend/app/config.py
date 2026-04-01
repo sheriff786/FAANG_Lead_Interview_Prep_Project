@@ -1,5 +1,9 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+# Resolve .env relative to the backend/ directory (parent of app/)
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -22,7 +26,7 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
 
     class Config:
-        env_file = ".env"
+        env_file = str(_ENV_FILE)
         env_file_encoding = "utf-8"
 
 
