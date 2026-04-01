@@ -5,6 +5,7 @@ import {
   disconnectLeetCode,
   getLeetCodeStatus,
   getLeetCodeProgress,
+  browserLoginLeetCode,
 } from '../../api/leetcode'
 
 const s: Record<string, React.CSSProperties> = {
@@ -68,7 +69,7 @@ export default function LeetCodeConnect() {
 
   const [sessionCookie, setSessionCookie] = useState('')
   const [csrfToken, setCsrfToken] = useState('')
-  const [showForm, setShowForm] = useState(false)
+  const [showManual, setShowManual] = useState(false)
   const [error, setError] = useState('')
 
   // Check existing connection on mount
@@ -88,6 +89,26 @@ export default function LeetCodeConnect() {
       const prog = await getLeetCodeProgress()
       setLcProgress(prog)
     } catch {}
+  }
+
+  const handleBrowserLogin = async () => {
+    setError('')
+    setLcConnecting(true)
+    try {
+      const user = await browserLoginLeetCode()
+      setLcConnected(true, {
+        username: user.username,
+        real_name: user.real_name,
+        avatar: user.avatar,
+        is_premium: user.is_premium,
+      })
+      loadProgress()
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || 'Browser login failed. Try again or use manual method.'
+      setError(msg)
+    } finally {
+      setLcConnecting(false)
+    }
   }
 
   const handleConnect = async () => {
@@ -194,7 +215,7 @@ export default function LeetCodeConnect() {
     <div style={s.wrap}>
       <div style={s.label}>🔗 LeetCode Account</div>
 
-      {!showForm ? (
+      {!lcConnecting ? (
         <>
           <div style={{
             ...s.badge, marginBottom: 8,
@@ -203,64 +224,86 @@ export default function LeetCodeConnect() {
           }}>
             ○ Not connected
           </div>
+
+          {/* Primary: Browser Login */}
           <button
-            onClick={() => setShowForm(true)}
-            style={{ ...s.btn, ...s.connectBtn }}
+            onClick={handleBrowserLogin}
+            style={{ ...s.btn, ...s.connectBtn, marginBottom: 6 }}
           >
-            ⚡ Connect LeetCode Account
+            🌐 Sign in with Browser
           </button>
-        </>
-      ) : (
-        <>
-          <div style={s.helpText}>
-            <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: 4 }}>How to get your session cookie:</strong>
-            1. Log in to <a href="https://leetcode.com" target="_blank" rel="noreferrer" style={s.helpLink}>leetcode.com</a><br />
-            2. Open DevTools → Application → Cookies<br />
-            3. Copy <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,.06)', padding: '1px 4px', borderRadius: 3 }}>LEETCODE_SESSION</code> value<br />
-            4. Optionally copy <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,.06)', padding: '1px 4px', borderRadius: 3 }}>csrftoken</code> too
-          </div>
 
-          <input
-            style={s.input}
-            value={sessionCookie}
-            onChange={(e) => setSessionCookie(e.target.value)}
-            placeholder="LEETCODE_SESSION cookie"
-            onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
-          />
-          <input
-            style={{ ...s.input, marginBottom: 8 }}
-            value={csrfToken}
-            onChange={(e) => setCsrfToken(e.target.value)}
-            placeholder="csrftoken (optional)"
-            onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
-          />
-
-          <div style={{ display: 'flex', gap: 6 }}>
+          {/* Secondary: Manual cookie entry */}
+          {!showManual ? (
             <button
-              onClick={handleConnect}
-              disabled={lcConnecting || !sessionCookie.trim()}
+              onClick={() => setShowManual(true)}
               style={{
-                ...s.btn, ...s.connectBtn, flex: 1,
-                opacity: lcConnecting || !sessionCookie.trim() ? 0.4 : 1,
-                cursor: lcConnecting ? 'wait' : 'pointer',
-              }}
-            >
-              {lcConnecting ? '⏳ Connecting...' : '✓ Connect'}
-            </button>
-            <button
-              onClick={() => { setShowForm(false); setError('') }}
-              style={{
-                ...s.btn, flex: 0.5,
+                ...s.btn,
                 background: 'transparent', borderColor: 'var(--border2)',
-                color: 'var(--muted)',
+                color: 'var(--muted)', fontSize: 9,
               }}
             >
-              Cancel
+              ⚙ Manual cookie entry
             </button>
-          </div>
+          ) : (
+            <>
+              <div style={{ ...s.helpText, marginTop: 6 }}>
+                <strong style={{ color: 'var(--accent)', display: 'block', marginBottom: 4 }}>Manual: paste your session cookie</strong>
+                DevTools → Application → Cookies → <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,.06)', padding: '1px 4px', borderRadius: 3 }}>LEETCODE_SESSION</code>
+              </div>
+
+              <input
+                style={s.input}
+                value={sessionCookie}
+                onChange={(e) => setSessionCookie(e.target.value)}
+                placeholder="LEETCODE_SESSION cookie"
+                onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
+              />
+              <input
+                style={{ ...s.input, marginBottom: 8 }}
+                value={csrfToken}
+                onChange={(e) => setCsrfToken(e.target.value)}
+                placeholder="csrftoken (optional)"
+                onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
+              />
+
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={handleConnect}
+                  disabled={!sessionCookie.trim()}
+                  style={{
+                    ...s.btn, ...s.connectBtn, flex: 1,
+                    opacity: !sessionCookie.trim() ? 0.4 : 1,
+                  }}
+                >
+                  ✓ Connect
+                </button>
+                <button
+                  onClick={() => { setShowManual(false); setError('') }}
+                  style={{
+                    ...s.btn, flex: 0.5,
+                    background: 'transparent', borderColor: 'var(--border2)',
+                    color: 'var(--muted)',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
 
           {error && <div style={s.error}>⚠️ {error}</div>}
         </>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '12px 0' }}>
+          <div style={{ fontSize: 11, color: 'var(--accent2)', marginBottom: 6, fontFamily: 'var(--mono)' }}>
+            ⏳ Browser opened...
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
+            Log in to LeetCode in the browser window.<br />
+            Cookies will be captured automatically.
+          </div>
+        </div>
       )}
     </div>
   )

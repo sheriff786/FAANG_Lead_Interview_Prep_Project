@@ -16,6 +16,11 @@ export async function connectLeetCode(sessionCookie: string, csrfToken?: string)
   return data
 }
 
+export async function browserLoginLeetCode(): Promise<LeetCodeUser & { connected: boolean }> {
+  const { data } = await api.post('/api/leetcode-account/browser-login', {}, { timeout: 130000 })
+  return data
+}
+
 export async function disconnectLeetCode(): Promise<void> {
   await api.post('/api/leetcode-account/disconnect')
 }

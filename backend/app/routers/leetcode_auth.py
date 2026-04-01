@@ -12,6 +12,7 @@ from app.services.leetcode_graphql import (
     graphql_get_recent_submissions,
     graphql_get_problem_list,
 )
+from app.services.leetcode_browser_login import browser_login_and_capture_cookies
 
 router = APIRouter(prefix="/api/leetcode-account", tags=["leetcode-account"])
 
@@ -88,6 +89,41 @@ async def connect_leetcode(body: ConnectRequest):
     _active_session = {
         "session_cookie": body.session_cookie,
         "csrf_token": body.csrf_token,
+        "username": user["username"],
+    }
+
+    return ConnectResponse(
+        connected=True,
+        username=user["username"],
+        real_name=user["real_name"],
+        avatar=user["avatar"],
+        is_premium=user["is_premium"],
+    )
+
+
+@router.post("/browser-login", response_model=ConnectResponse)
+async def browser_login():
+    """Open a browser window for LeetCode login, auto-capture cookies."""
+    global _active_session
+    import traceback
+    try:
+        creds = await browser_login_and_capture_cookies(timeout_seconds=120)
+    except TimeoutError as e:
+        raise HTTPException(status_code=408, detail=str(e))
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"[browser-login] Error: {e}\n{tb}")
+        raise HTTPException(status_code=500, detail=f"Browser login failed: {type(e).__name__}: {e}")
+
+    # Verify the captured session
+    try:
+        user = await graphql_get_user_status(creds["session_cookie"], creds.get("csrf_token"))
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+    _active_session = {
+        "session_cookie": creds["session_cookie"],
+        "csrf_token": creds.get("csrf_token"),
         "username": user["username"],
     }
 
