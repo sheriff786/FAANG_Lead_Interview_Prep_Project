@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeetCode Multi-Agent Coach</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap');
+:root{--bg:#090910;--surface:#111119;--surface2:#18181f;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);--accent:#6c63ff;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffa94d;--text:#e8e8f2;--muted:#7a7a8c;--mono:'JetBrains Mono',monospace;--sans:'Sora',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--surface);flex-shrink:0;}
+.logo{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
+.header-title{font-size:14px;font-weight:600;}.header-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.hbadge{margin-left:auto;font-size:9px;font-family:var(--mono);color:var(--accent2);border:1px solid rgba(0,212,170,0.3);padding:3px 8px;border-radius:20px;letter-spacing:.5px;}
+.main{display:flex;flex:1;overflow:hidden;height:calc(100vh - 57px);}
+.left{width:265px;min-width:265px;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow-y:auto;}
+.left::-webkit-scrollbar{width:4px;}.left::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.ps{padding:13px;border-bottom:1px solid var(--border);}
+.pl{font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:9px;font-family:var(--mono);}
+.ig{margin-bottom:8px;}.ig label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;}
+input[type=text],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--sans);font-size:12px;padding:7px 10px;outline:none;transition:border-color .2s;}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent);}
+select option{background:#18181f;}textarea{resize:none;height:70px;font-size:11px;}
+.fetch-row{display:flex;gap:5px;margin-bottom:8px;}
+.fi{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none;transition:border-color .2s;}
+.fi:focus{border-color:var(--accent2);}
+.fb{background:rgba(0,212,170,.15);border:1px solid rgba(0,212,170,.4);border-radius:7px;color:var(--accent2);font-size:10px;font-family:var(--mono);padding:0 10px;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.fb:hover{background:rgba(0,212,170,.25);}.fb:disabled{opacity:.3;cursor:not-allowed;}
+.badge-s{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;font-size:10px;font-family:var(--mono);border-radius:6px;margin-bottom:6px;}
+.badge-s.idle{background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:var(--accent);}
+.badge-s.ok{background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.3);color:var(--accent2);}
+.badge-s.err{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--accent3);}
+.badge-s.loading{background:rgba(255,169,77,.1);border:1px solid rgba(255,169,77,.3);color:var(--accent4);}
+.dr{display:flex;gap:5px;margin-top:5px;}
+.db{flex:1;padding:5px 0;border-radius:6px;border:1px solid var(--border2);font-size:10px;cursor:pointer;font-family:var(--sans);background:transparent;color:var(--muted);transition:all .2s;}
+.db.easy{--c:#00d4aa;}.db.medium{--c:#ffa94d;}.db.hard{--c:#ff6b6b;}
+.db.active,.db:hover{background:color-mix(in srgb,var(--c) 15%,transparent);border-color:var(--c);color:var(--c);}
+.run-btn{width:100%;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:8px;color:#fff;font-family:var(--sans);font-size:12px;font-weight:500;padding:9px;cursor:pointer;transition:opacity .2s,transform .1s;margin-top:4px;}
+.run-btn:hover{opacity:.9;transform:translateY(-1px);}.run-btn:active{transform:translateY(0);}.run-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.ag{display:flex;flex-direction:column;gap:7px;}
+.ac{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;display:flex;align-items:center;gap:9px;transition:border-color .2s;}
+.ac.active{border-color:var(--ac);}
+.ad{width:7px;height:7px;border-radius:50%;background:var(--ac);flex-shrink:0;position:relative;}
+.ac.running .ad::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--ac);animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.25;transform:scale(1.6);}}
+.aname{flex:1;}.an{font-size:11px;font-weight:500;}.ast{font-size:9px;color:var(--muted);margin-top:1px;font-family:var(--mono);}
+.ab{font-size:8px;font-family:var(--mono);padding:2px 5px;border-radius:10px;border:1px solid var(--ac);color:var(--ac);opacity:.7;}
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 14px;gap:2px;flex-shrink:0;}
+.tab{padding:10px 13px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}.tab:hover:not(.active){color:var(--text);}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:13px;}
+.msgs::-webkit-scrollbar{width:4px;}.msgs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.msg{display:flex;gap:10px;animation:fu .3s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.mav{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.mc{flex:1;}.mh{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.mn{font-size:11px;font-weight:600;}.mt{font-size:9px;color:var(--muted);font-family:var(--mono);}
+.mb{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;font-size:12px;line-height:1.7;color:var(--text);}
+.mb.sys{background:var(--surface);border-style:dashed;color:var(--muted);font-size:11px;font-family:var(--mono);}
+.mb pre{font-family:var(--mono);font-size:11px;background:#06060c;border:1px solid var(--border2);border-radius:5px;padding:10px;overflow-x:auto;margin:8px 0;line-height:1.5;}
+.mb code{font-family:var(--mono);font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;}
+.mb h3{font-size:12px;font-weight:600;margin:9px 0 5px;}
+.mb ul{padding-left:16px;}.mb li{margin:3px 0;}
+.mb strong{font-weight:600;color:var(--accent2);}.mb a{color:var(--accent2);text-decoration:none;}.mb a:hover{text-decoration:underline;}
+.sdiv{text-align:center;font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;padding:3px 0;position:relative;}
+.sdiv::before,.sdiv::after{content:'';position:absolute;top:50%;width:38%;height:1px;background:var(--border);}
+.sdiv::before{left:0;}.sdiv::after{right:0;}
+.ld span{display:inline-block;width:5px;height:5px;background:var(--accent);border-radius:50%;margin:0 2px;animation:db2 1.2s ease-in-out infinite;}
+.ld span:nth-child(2){animation-delay:.2s;}.ld span:nth-child(3){animation-delay:.4s;}
+@keyframes db2{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-5px);opacity:1;}}
+.tp{display:none;flex:1;overflow-y:auto;padding:16px;}
+.tp.active{display:block;}
+.tp::-webkit-scrollbar{width:4px;}.tp::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.rc{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin-bottom:10px;}
+.rc h4{font-size:12px;font-weight:500;margin-bottom:4px;}.rc p{font-size:11px;color:var(--muted);line-height:1.5;}
+.rc .rtags{margin-top:7px;display:flex;flex-wrap:wrap;gap:4px;}
+.rtag{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:10px;}
+.scard{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;}
+.scard:hover{border-color:var(--accent);transform:translateX(2px);}
+.snum{font-family:var(--mono);font-size:10px;color:var(--muted);width:32px;flex-shrink:0;}
+.sinfo{flex:1;}.sinfo h4{font-size:12px;font-weight:500;}.sinfo p{font-size:10px;color:var(--muted);margin-top:1px;}
+.dpill{font-size:9px;padding:2px 7px;border-radius:10px;font-family:var(--mono);}
+.pcard{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:13px 15px;margin-bottom:11px;}
+.pcard h3{font-size:12px;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pcard p{font-size:11px;color:var(--muted);line-height:1.6;}
+.empty-s{text-align:center;padding:50px 16px;color:var(--muted);}
+.empty-s .ei{font-size:36px;margin-bottom:14px;opacity:.45;}
+.empty-s h3{font-size:14px;font-weight:500;margin-bottom:7px;color:var(--text);}
+.empty-s p{font-size:12px;line-height:1.6;}
+.qchips{padding:7px 14px 0;display:flex;gap:5px;flex-wrap:wrap;background:var(--surface);flex-shrink:0;}
+.chip{font-size:10px;padding:4px 9px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-family:var(--sans);transition:all .2s;}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(108,99,255,.08);}
+.cia{border-top:1px solid var(--border);padding:10px 14px;background:var(--surface);display:flex;gap:7px;flex-shrink:0;}
+.ci{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:12px;padding:8px 11px;outline:none;transition:border-color .2s;}
+.ci:focus{border-color:var(--accent);}
+.sbtn{background:var(--accent);border:none;border-radius:8px;color:#fff;font-family:var(--sans);font-size:12px;padding:8px 14px;cursor:pointer;transition:opacity .2s;}
+.sbtn:hover{opacity:.85;}.sbtn:disabled{opacity:.3;cursor:not-allowed;}
+.pb{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin:5px 0;}
+.pf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease;}
+.info-box{background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:9px 11px;margin-bottom:9px;font-size:11px;line-height:1.6;}
+.info-box h4{font-size:10px;font-weight:600;color:var(--accent);margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">⚡</div>
+  <div>
+    <div class="header-title">LeetCode Multi-Agent Coach</div>
+    <div class="header-sub">Live problem fetch · 4 AI agents · FAANG prep</div>
+  </div>
+  <div class="hbadge">MULTI-AGENT · LIVE</div>
+</div>
+
+<div class="main">
+  <!-- LEFT PANEL -->
+  <div class="left">
+    <div class="ps">
+      <div class="pl">🔗 Fetch from LeetCode</div>
+      <div class="info-box">
+        <h4>Direct LeetCode Integration</h4>
+        Type a slug like <code style="font-family:var(--mono);background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;">two-sum</code> or a number like <code style="font-family:var(--mono);background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;">1</code> to auto-load the problem.
+      </div>
+      <div class="fetch-row">
+        <input class="fi" id="lc-slug" placeholder="slug or #number (e.g. two-sum)" onkeydown="if(event.key==='Enter')fetchLC()"/>
+        <button class="fb" id="fb" onclick="fetchLC()">Fetch ↗</button>
+      </div>
+      <div id="lc-st"></div>
+      <div class="ig">
+        <label>Or paste problem statement</label>
+        <textarea id="pdesc" placeholder="Paste problem here if fetch fails..."></textarea>
+      </div>
+      <div class="ig">
+        <label>Your level</label>
+        <select id="lvl">
+          <option value="beginner">Beginner (&lt;6 months)</option>
+          <option value="intermediate" selected>Intermediate (6m–2yr)</option>
+          <option value="advanced">Advanced (2+ years)</option>
+        </select>
+      </div>
+      <div class="ig">
+        <label>Difficulty</label>
+        <div class="dr">
+          <button class="db easy" onclick="setDiff('easy',this)">Easy</button>
+          <button class="db medium active" onclick="setDiff('medium',this)">Med</button>
+          <button class="db hard" onclick="setDiff('hard',this)">Hard</button>
+        </div>
+      </div>
+      <button class="run-btn" id="abtn" onclick="startAnalysis()">⚡ Analyze with All Agents</button>
+    </div>
+
+    <div class="ps">
+      <div class="pl">Active Agents</div>
+      <div class="ag">
+        <div class="ac" style="--ac:#6c63ff;" id="ag-analyst"><div class="ad"></div><div class="aname"><div class="an">Problem Analyst</div><div class="ast" id="st-analyst">idle</div></div><div class="ab">PA</div></div>
+        <div class="ac" style="--ac:#00d4aa;" id="ag-strategy"><div class="ad"></div><div class="aname"><div class="an">Strategy Coach</div><div class="ast" id="st-strategy">idle</div></div><div class="ab">SC</div></div>
+        <div class="ac" style="--ac:#ffa94d;" id="ag-code"><div class="ad"></div><div class="aname"><div class="an">Code Mentor</div><div class="ast" id="st-code">idle</div></div><div class="ab">CM</div></div>
+        <div class="ac" style="--ac:#ff6b6b;" id="ag-resource"><div class="ad"></div><div class="aname"><div class="an">Resource Finder</div><div class="ast" id="st-resource">idle</div></div><div class="ab">RF</div></div>
+      </div>
+    </div>
+
+    <div class="ps">
+      <div class="pl">Session</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Problems analyzed</div>
+      <div class="pb"><div class="pf" id="pfill" style="width:0%;"></div></div>
+      <div style="font-size:10px;color:var(--muted);display:flex;justify-content:space-between;margin-top:3px;">
+        <span id="pdone">0 analyzed</span><span style="color:var(--accent2);" id="ppct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT / CHAT -->
+  <div class="chat-area">
+    <div class="tabs">
+      <div class="tab active" onclick="swTab('analysis',this)">🔍 Analysis</div>
+      <div class="tab" onclick="swTab('strategy',this)">🎯 Strategy</div>
+      <div class="tab" onclick="swTab('similar',this)">🔗 Similar Problems</div>
+      <div class="tab" onclick="swTab('resources',this)">📚 Resources</div>
+    </div>
+
+    <!-- Analysis tab -->
+    <div id="tab-analysis" class="tp active" style="display:flex;flex-direction:column;padding:0;overflow:hidden;">
+      <div class="msgs" id="msgs">
+        <div class="empty-s">
+          <div class="ei">🤖</div>
+          <h3>Ready to coach you</h3>
+          <p>Fetch a LeetCode problem by typing its slug (e.g. <strong style="color:var(--accent);">merge-intervals</strong>) or number, then click <strong style="color:var(--accent);">Analyze</strong> — all 4 agents break it down for FAANG prep.</p>
+        </div>
+      </div>
+      <div class="qchips" id="qchips" style="display:none;">
+        <button class="chip" onclick="askQ('Explain with a visual walkthrough example')">Visual example</button>
+        <button class="chip" onclick="askQ('Show brute force approach first then optimize')">Brute → Optimal</button>
+        <button class="chip" onclick="askQ('Give me a hint without giving away the solution')">Hint 💡</button>
+        <button class="chip" onclick="askQ('Explain time and space complexity step by step')">Complexity</button>
+        <button class="chip" onclick="askQ('Show solution in Java')">Java</button>
+        <button class="chip" onclick="askQ('Show solution in C++')">C++</button>
+        <button class="chip" onclick="askQ('What edge cases must I handle?')">Edge cases</button>
+      </div>
+      <div class="cia">
+        <input class="ci" id="cinput" placeholder="Ask a follow-up..." onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button class="sbtn" id="sbtn" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+
+    <div id="tab-strategy" class="tp"><div id="sc-content"><div class="empty-s"><div class="ei">🎯</div><h3>Strategy appears after analysis</h3><p>Step-by-step approach, pattern recognition, mental models, and interview trigger signals.</p></div></div></div>
+    <div id="tab-similar" class="tp"><div id="sim-content"><div class="empty-s"><div class="ei">🔗</div><h3>Similar problems appear after analysis</h3><p>Problems using the same pattern — with clickable LeetCode links, difficulty tags, and why they're related.</p></div></div></div>
+    <div id="tab-resources" class="tp"><div id="res-content"><div class="empty-s"><div class="ei">📚</div><h3>Resources appear after analysis</h3><p>Curated YouTube channels, roadmaps, and books matched to your problem's pattern.</p></div></div></div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let diff='medium', busy=false, hist=[], ctx='', fetchedP=null, analyzed=0;
+
+// ── Curated Similar Problems Database ────────────────────────────────────────
+const SIMILAR = {
+  'two pointers':[
+    {id:'#11',t:'Container With Most Water',d:'Medium',lk:'container-with-most-water',why:'Squeeze from both ends, maximize area'},
+    {id:'#15',t:'3Sum',d:'Medium',lk:'3sum',why:'Fix one, two-pointer on rest'},
+    {id:'#42',t:'Trapping Rain Water',d:'Hard',lk:'trapping-rain-water',why:'Left/right max tracking via two pointers'},
+    {id:'#167',t:'Two Sum II',d:'Medium',lk:'two-sum-ii-input-array-is-sorted',why:'Two pointers on sorted array'},
+    {id:'#125',t:'Valid Palindrome',d:'Easy',lk:'valid-palindrome',why:'Classic left-right pointer check'},
+    {id:'#977',t:'Squares of a Sorted Array',d:'Easy',lk:'squares-of-a-sorted-array',why:'Two pointers from both ends inward'},
+  ],
+  'hash map':[
+    {id:'#1',t:'Two Sum',d:'Easy',lk:'two-sum',why:'Canonical complement hash map'},
+    {id:'#49',t:'Group Anagrams',d:'Medium',lk:'group-anagrams',why:'Group by sorted key in map'},
+    {id:'#128',t:'Longest Consecutive Sequence',d:'Medium',lk:'longest-consecutive-sequence',why:'Hash set for O(1) membership'},
+    {id:'#560',t:'Subarray Sum Equals K',d:'Medium',lk:'subarray-sum-equals-k',why:'Prefix sum + hash map'},
+    {id:'#242',t:'Valid Anagram',d:'Easy',lk:'valid-anagram',why:'Frequency count comparison'},
+    {id:'#383',t:'Ransom Note',d:'Easy',lk:'ransom-note',why:'Character availability map'},
+  ],
+  'sliding window':[
+    {id:'#3',t:'Longest Substring Without Repeating',d:'Medium',lk:'longest-substring-without-repeating-characters',why:'Variable window + set'},
+    {id:'#76',t:'Minimum Window Substring',d:'Hard',lk:'minimum-window-substring',why:'Variable window, character need tracking'},
+    {id:'#424',t:'Longest Repeating Character Replacement',d:'Medium',lk:'longest-repeating-character-replacement',why:'Frequency-constrained window'},
+    {id:'#567',t:'Permutation in String',d:'Medium',lk:'permutation-in-string',why:'Fixed-size window frequency match'},
+    {id:'#239',t:'Sliding Window Maximum',d:'Hard',lk:'sliding-window-maximum',why:'Monotonic deque in window'},
+    {id:'#438',t:'Find All Anagrams in a String',d:'Medium',lk:'find-all-anagrams-in-a-string',why:'Fixed window anagram detection'},
+  ],
+  'binary search':[
+    {id:'#704',t:'Binary Search',d:'Easy',lk:'binary-search',why:'Foundational binary search'},
+    {id:'#33',t:'Search in Rotated Sorted Array',d:'Medium',lk:'search-in-rotated-sorted-array',why:'Binary search + rotation check'},
+    {id:'#153',t:'Find Min in Rotated Array',d:'Medium',lk:'find-minimum-in-rotated-sorted-array',why:'Binary search on rotated input'},
+    {id:'#34',t:'First and Last Position',d:'Medium',lk:'find-first-and-last-position-of-element-in-sorted-array',why:'Two binary searches for bounds'},
+    {id:'#875',t:'Koko Eating Bananas',d:'Medium',lk:'koko-eating-bananas',why:'Binary search on answer space'},
+    {id:'#74',t:'Search a 2D Matrix',d:'Medium',lk:'search-a-2d-matrix',why:'Treat 2D as flat sorted array'},
+  ],
+  'dynamic programming':[
+    {id:'#70',t:'Climbing Stairs',d:'Easy',lk:'climbing-stairs',why:'Fibonacci-style 1D DP'},
+    {id:'#198',t:'House Robber',d:'Medium',lk:'house-robber',why:'Non-adjacent selection DP'},
+    {id:'#300',t:'Longest Increasing Subsequence',d:'Medium',lk:'longest-increasing-subsequence',why:'Classic LIS DP'},
+    {id:'#322',t:'Coin Change',d:'Medium',lk:'coin-change',why:'Unbounded knapsack'},
+    {id:'#1143',t:'Longest Common Subsequence',d:'Medium',lk:'longest-common-subsequence',why:'2D DP on two sequences'},
+    {id:'#416',t:'Partition Equal Subset Sum',d:'Medium',lk:'partition-equal-subset-sum',why:'0/1 knapsack variant'},
+    {id:'#72',t:'Edit Distance',d:'Medium',lk:'edit-distance',why:'Classic 2D string DP'},
+  ],
+  'bfs':[
+    {id:'#102',t:'Binary Tree Level Order',d:'Medium',lk:'binary-tree-level-order-traversal',why:'Textbook BFS level processing'},
+    {id:'#200',t:'Number of Islands',d:'Medium',lk:'number-of-islands',why:'BFS flood fill on grid'},
+    {id:'#994',t:'Rotting Oranges',d:'Medium',lk:'rotting-oranges',why:'Multi-source BFS simulation'},
+    {id:'#542',t:'01 Matrix',d:'Medium',lk:'01-matrix',why:'Multi-source BFS from all 0s'},
+    {id:'#127',t:'Word Ladder',d:'Hard',lk:'word-ladder',why:'BFS shortest path in word graph'},
+    {id:'#133',t:'Clone Graph',d:'Medium',lk:'clone-graph',why:'BFS with hash map for clone'},
+  ],
+  'dfs':[
+    {id:'#200',t:'Number of Islands',d:'Medium',lk:'number-of-islands',why:'DFS flood fill on grid'},
+    {id:'#695',t:'Max Area of Island',d:'Medium',lk:'max-area-of-island',why:'DFS flood fill with count'},
+    {id:'#417',t:'Pacific Atlantic Water Flow',d:'Medium',lk:'pacific-atlantic-water-flow',why:'DFS from each ocean boundary'},
+    {id:'#207',t:'Course Schedule',d:'Medium',lk:'course-schedule',why:'Cycle detection via DFS on DAG'},
+    {id:'#210',t:'Course Schedule II',d:'Medium',lk:'course-schedule-ii',why:'Topological sort via DFS'},
+    {id:'#130',t:'Surrounded Regions',d:'Medium',lk:'surrounded-regions',why:'Boundary DFS then flip'},
+  ],
+  'stack':[
+    {id:'#20',t:'Valid Parentheses',d:'Easy',lk:'valid-parentheses',why:'Classic bracket stack matching'},
+    {id:'#155',t:'Min Stack',d:'Medium',lk:'min-stack',why:'Stack tracking minimum element'},
+    {id:'#739',t:'Daily Temperatures',d:'Medium',lk:'daily-temperatures',why:'Monotonic stack for next greater'},
+    {id:'#84',t:'Largest Rectangle in Histogram',d:'Hard',lk:'largest-rectangle-in-histogram',why:'Monotonic stack area tracking'},
+    {id:'#150',t:'Evaluate Reverse Polish Notation',d:'Medium',lk:'evaluate-reverse-polish-notation',why:'Stack-based expression evaluation'},
+    {id:'#901',t:'Online Stock Span',d:'Medium',lk:'online-stock-span',why:'Monotonic stack for previous greater'},
+  ],
+  'heap':[
+    {id:'#215',t:'Kth Largest Element',d:'Medium',lk:'kth-largest-element-in-an-array',why:'Min-heap of size k'},
+    {id:'#347',t:'Top K Frequent Elements',d:'Medium',lk:'top-k-frequent-elements',why:'Heap or bucket sort by frequency'},
+    {id:'#295',t:'Find Median from Data Stream',d:'Hard',lk:'find-median-from-data-stream',why:'Two heaps (max+min) median'},
+    {id:'#23',t:'Merge K Sorted Lists',d:'Hard',lk:'merge-k-sorted-lists',why:'Min-heap over k list heads'},
+    {id:'#373',t:'Find K Pairs with Smallest Sums',d:'Medium',lk:'find-k-pairs-with-smallest-sums',why:'Min-heap over pair candidates'},
+  ],
+  'backtracking':[
+    {id:'#46',t:'Permutations',d:'Medium',lk:'permutations',why:'Classic backtracking permutation'},
+    {id:'#78',t:'Subsets',d:'Medium',lk:'subsets',why:'Power set via backtracking'},
+    {id:'#39',t:'Combination Sum',d:'Medium',lk:'combination-sum',why:'Backtracking with element reuse'},
+    {id:'#79',t:'Word Search',d:'Medium',lk:'word-search',why:'DFS backtracking on 2D grid'},
+    {id:'#51',t:'N-Queens',d:'Hard',lk:'n-queens',why:'Classic constraint backtracking'},
+    {id:'#40',t:'Combination Sum II',d:'Medium',lk:'combination-sum-ii',why:'No-reuse variant with dedup'},
+  ],
+  'tree':[
+    {id:'#104',t:'Maximum Depth of Binary Tree',d:'Easy',lk:'maximum-depth-of-binary-tree',why:'Recursive DFS depth'},
+    {id:'#226',t:'Invert Binary Tree',d:'Easy',lk:'invert-binary-tree',why:'Recursive left-right swap'},
+    {id:'#543',t:'Diameter of Binary Tree',d:'Easy',lk:'diameter-of-binary-tree',why:'Longest path via DFS'},
+    {id:'#105',t:'Construct from Preorder+Inorder',d:'Medium',lk:'construct-binary-tree-from-preorder-and-inorder-traversal',why:'Recursive partitioning'},
+    {id:'#124',t:'Binary Tree Max Path Sum',d:'Hard',lk:'binary-tree-maximum-path-sum',why:'DFS returning max one-sided path'},
+    {id:'#100',t:'Same Tree',d:'Easy',lk:'same-tree',why:'Structural recursive comparison'},
+  ],
+  'intervals':[
+    {id:'#57',t:'Insert Interval',d:'Medium',lk:'insert-interval',why:'Merge during insertion scan'},
+    {id:'#56',t:'Merge Intervals',d:'Medium',lk:'merge-intervals',why:'Sort then merge overlapping'},
+    {id:'#435',t:'Non-overlapping Intervals',d:'Medium',lk:'non-overlapping-intervals',why:'Greedy: remove fewest to make disjoint'},
+    {id:'#252',t:'Meeting Rooms',d:'Easy',lk:'meeting-rooms',why:'Sort + check overlap'},
+    {id:'#253',t:'Meeting Rooms II',d:'Medium',lk:'meeting-rooms-ii',why:'Heap or sweep for min rooms'},
+    {id:'#1851',t:'Minimum Interval to Include Each Query',d:'Hard',lk:'minimum-interval-to-include-each-query',why:'Sorted events + min-heap queries'},
+  ],
+  'greedy':[
+    {id:'#55',t:'Jump Game',d:'Medium',lk:'jump-game',why:'Track max reachable greedily'},
+    {id:'#45',t:'Jump Game II',d:'Medium',lk:'jump-game-ii',why:'Min jumps via greedy BFS levels'},
+    {id:'#134',t:'Gas Station',d:'Medium',lk:'gas-station',why:'Greedy start reset when deficit'},
+    {id:'#435',t:'Non-overlapping Intervals',d:'Medium',lk:'non-overlapping-intervals',why:'Greedy interval removal'},
+    {id:'#763',t:'Partition Labels',d:'Medium',lk:'partition-labels',why:'Last occurrence greedy partitioning'},
+  ],
+};
+
+const RESOURCES = [
+  {t:'NeetCode.io',d:'Best structured FAANG roadmap — every pattern has a whiteboard video + clean code. Start here.',tags:['Free','Video','Roadmap'],c:'#6c63ff'},
+  {t:'Blind 75 / NeetCode 150',d:'Curated problem sets covering every interview pattern. Master these before random grinding.',tags:['Curated','Problems'],c:'#00d4aa'},
+  {t:'Back To Back SWE (YouTube)',d:'Whiteboard-style explanations simulating real interviews. Top-tier for DP, trees, and graphs.',tags:['YouTube','Free'],c:'#ffa94d'},
+  {t:'Grokking the Coding Interview (Educative)',d:'Pattern-based course grouping problems into 16 patterns. Best for building intuition fast.',tags:['Paid','Pattern-Based'],c:'#ff6b6b'},
+  {t:'AlgoExpert',d:'Video explanations with full complexity walkthroughs. Great alongside coding practice.',tags:['Paid','Video'],c:'#6c63ff'},
+  {t:'LeetCode 75 (Official Study Plan)',d:'Official curated plan. Sort problems by company frequency for targeted prep.',tags:['Free','Company-Tagged'],c:'#00d4aa'},
+  {t:'CLRS – Introduction to Algorithms',d:'The definitive textbook. Use as deep-dive reference for complex topics like DP and graphs.',tags:['Book','Reference'],c:'#ffa94d'},
+];
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function setDiff(d,btn){diff=d;document.querySelectorAll('.db').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+function swTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tp').forEach(p=>{p.classList.remove('active');p.style.display='none';});
+  el.classList.add('active');
+  const p=document.getElementById('tab-'+tab);
+  p.classList.add('active');
+  p.style.display=tab==='analysis'?'flex':'block';
+}
+
+function setAgent(id,state,txt){
+  const c=document.getElementById('ag-'+id);
+  const s=document.getElementById('st-'+id);
+  c.className='ac'+(state?' '+state:'');
+  const cols={analyst:'#6c63ff',strategy:'#00d4aa',code:'#ffa94d',resource:'#ff6b6b'};
+  c.style.setProperty('--ac',cols[id]);
+  s.textContent=txt;
+}
+
+function addMsg(agk,name,html,type=''){
+  const msgs=document.getElementById('msgs');
+  msgs.querySelector('.empty-s')?.remove();
+  const cols={analyst:'#6c63ff',strategy:'#00d4aa',code:'#ffa94d',resource:'#ff6b6b',user:'#888899'};
+  const icons={analyst:'🔍',strategy:'🎯',code:'💻',resource:'📚',user:'👤'};
+  const now=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');
+  d.className='msg';
+  d.innerHTML=`<div class="mav" style="background:${cols[agk]}22;color:${cols[agk]};">${icons[agk]}</div>
+  <div class="mc"><div class="mh"><span class="mn" style="color:${cols[agk]};">${name}</span><span class="mt">${now}</span></div>
+  <div class="mb${type==='sys'?' sys':''}">${html}</div></div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d;
+}
+
+function addLoader(agk,name){return addMsg(agk,name,'<div class="ld"><span></span><span></span><span></span></div>');}
+
+function addDivider(txt){
+  const msgs=document.getElementById('msgs');
+  const d=document.createElement('div');d.className='sdiv';d.textContent=txt;msgs.appendChild(d);
+}
+
+function fmt(t){
+  return t
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`([^`\n]+)`/g,'<code>$1</code>')
+    .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
+    .replace(/^#{1,3} (.*?)$/gm,'<h3>$1</h3>')
+    .replace(/^- (.*?)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>)+/g,'<ul>$&</ul>')
+    .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+
+async function callClaude(sys,user,h=[]){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[...h,{role:'user',content:user}]})
+  });
+  const d=await r.json();
+  return d.content?.[0]?.text||'Error.';
+}
+
+// ── LeetCode Fetch ────────────────────────────────────────────────────────────
+async function fetchLC(){
+  const raw=document.getElementById('lc-slug').value.trim();
+  if(!raw)return;
+  const fb=document.getElementById('fb');
+  const st=document.getElementById('lc-st');
+  fb.disabled=true;fb.textContent='...';
+  st.innerHTML='<div class="badge-s loading">⏳ Fetching from LeetCode...</div>';
+
+  // Determine slug vs id
+  let endpoint;
+  if(/^\d+$/.test(raw)){
+    endpoint=`https://leetcode-api-pied.vercel.app/problem/${raw}`;
+  } else {
+    endpoint=`https://leetcode-api-pied.vercel.app/problem/${raw.toLowerCase().replace(/\s+/g,'-')}`;
+  }
+
+  try{
+    const res=await fetch(endpoint,{signal:AbortSignal.timeout(12000)});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const d=await res.json();
+    if(!d||(d.error&&!d.title))throw new Error(d.error||'No data');
+
+    const title=d.title||d.question_title||raw;
+    const slug=d.title_slug||d.slug||(raw.toLowerCase().replace(/\s+/g,'-'));
+    const dif=(d.difficulty||'').toLowerCase();
+    const qid=d.frontend_question_id||d.question_id||'?';
+    const tags=(d.topic_tags||d.topicTags||[]).map(t=>t.name||t).join(', ');
+    const rawContent=d.content||d.body||'';
+    const clean=rawContent.replace(/<[^>]+>/g,' ').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+
+    fetchedP={title,slug,dif,qid,tags,content:clean};
+
+    if(dif==='easy'||dif==='medium'||dif==='hard'){
+      document.querySelectorAll('.db').forEach(b=>b.classList.remove('active'));
+      document.querySelector('.db.'+dif)?.classList.add('active');
+      diff=dif;
+    }
+
+    const preview=clean.slice(0,600)+(clean.length>600?'…':'');
+    document.getElementById('pdesc').value=`#${qid} ${title}\n\n${preview}`;
+
+    st.innerHTML=`<div class="badge-s ok">✅ #${qid} ${title} · ${dif}</div>${tags?`<div style="font-size:9px;color:var(--muted);margin-top:3px;font-family:var(--mono);">Tags: ${tags}</div>`:''}`;
+
+  }catch(e){
+    st.innerHTML=`<div class="badge-s err">⚠️ Fetch failed — paste manually or just type the name below</div>`;
+    fetchedP=null;
+  }
+  fb.disabled=false;fb.textContent='Fetch ↗';
+}
+
+// ── Pattern Detection ─────────────────────────────────────────────────────────
+function detectPattern(stratText,tags){
+  const s=(stratText+' '+(tags||'')).toLowerCase();
+  const rules=[
+    ['intervals',['interval','overlap','merge interval','meeting room']],
+    ['greedy',['greedy','locally optimal','jump game','gas station']],
+    ['sliding window',['sliding window','shrink.*window','window.*expand','contiguous subarray']],
+    ['two pointers',['two pointer','two-pointer','opposite end','left.*right pointer']],
+    ['binary search',['binary search','low.*high.*mid','search space','monotone.*condition']],
+    ['dynamic programming',['dynamic programming',' dp ','memoization','bottom.up','top.down','subproblem']],
+    ['bfs',['breadth.first','bfs','level order','shortest path.*graph']],
+    ['backtracking',['backtrack','permutation','combination sum','n.queen']],
+    ['dfs',['depth.first','dfs','flood fill','recursive.*grid']],
+    ['heap',['heap','priority queue','k largest','k smallest','min.heap','max.heap']],
+    ['stack',['monotonic stack','stack','parenthes','next greater','bracket']],
+    ['tree',['binary tree','bst','tree traversal','inorder','preorder','postorder']],
+    ['hash map',['hash map','hashmap','dictionary','frequency map','complement']],
+  ];
+  for(const [name,kws] of rules){
+    if(kws.some(kw=>new RegExp(kw).test(s)))return name;
+  }
+  return 'hash map';
+}
+
+// ── Main Analysis ─────────────────────────────────────────────────────────────
+async function startAnalysis(){
+  const desc=document.getElementById('pdesc').value.trim();
+  const slug=document.getElementById('lc-slug').value.trim();
+  if(!desc&&!slug){alert('Please fetch a problem or paste a problem statement.');return;}
+  if(busy)return;
+  busy=true;
+
+  const btn=document.getElementById('abtn');
+  btn.disabled=true;btn.textContent='⏳ Analyzing...';
+  document.getElementById('qchips').style.display='none';
+  document.getElementById('msgs').innerHTML='';
+  hist=[];
+
+  const level=document.getElementById('lvl').value;
+  const lvlStr={
+    beginner:'beginner developer (explain everything simply, assume no CS background)',
+    intermediate:'intermediate developer with basic CS knowledge',
+    advanced:'advanced developer who wants expert-level, concise explanations'
+  }[level];
+
+  const title=fetchedP?.title||slug||'this problem';
+  const fullCtx=fetchedP
+    ?`Problem #${fetchedP.qid}: ${fetchedP.title}\nDifficulty: ${fetchedP.dif}\nTopic Tags: ${fetchedP.tags}\n\nFull Statement:\n${fetchedP.content||desc}`
+    :`Problem:\n${desc||slug}`;
+  ctx=fullCtx;
+
+  if(fetchedP){
+    addMsg('analyst','System',`🔗 Loaded: <a href="https://leetcode.com/problems/${fetchedP.slug}/" target="_blank"><strong>#${fetchedP.qid} ${fetchedP.title}</strong></a> · <span style="color:var(--accent4);">${fetchedP.dif}</span><br><span style="font-size:10px;color:var(--muted);">Tags: ${fetchedP.tags||'N/A'}</span>`,'sys');
+  }
+
+  try{
+    // AGENT 1 — Problem Analyst
+    addDivider('AGENT 1 · PROBLEM ANALYST');
+    setAgent('analyst','running','analyzing...');
+    const l1=addLoader('analyst','Problem Analyst');
+    const r1=await callClaude(
+      `You are a Problem Analyst agent for LeetCode FAANG interview prep. Analyze this problem for a ${lvlStr}.
+Respond with:
+1. **What it really asks** (1-2 plain-English sentences — cut jargon)
+2. **Key observations** (3-4 bullets: important constraints, input characteristics, edge cases)
+3. **Why it's tricky** (1-2 common misunderstandings)
+4. **Data structures involved** (what you'll likely need and why)
+Be concise and educational. Use markdown.`,
+      fullCtx+`\nDifficulty: ${diff}`);
+    l1.remove();addMsg('analyst','Problem Analyst',fmt(r1));setAgent('analyst','active','done ✓');
+    hist.push({role:'user',content:fullCtx},{role:'assistant',content:r1});
+
+    // AGENT 2 — Strategy Coach
+    addDivider('AGENT 2 · STRATEGY COACH');
+    setAgent('strategy','running','planning...');
+    const l2=addLoader('strategy','Strategy Coach');
+    const r2=await callClaude(
+      `You are a Strategy Coach agent for LeetCode FAANG interview prep. Given problem + analysis, produce a solving strategy for a ${lvlStr}.
+Respond with:
+1. **Pattern** (name it precisely: sliding window, two pointers, hash map, BFS, DFS, DP, binary search, stack, heap, backtracking, intervals, greedy, etc.)
+2. **Step-by-step approach** (5-7 numbered steps — HOW to think through it, not just the answer)
+3. **Mental model** (one memorable analogy to lock this pattern in memory)
+4. **Pattern trigger signals** (exact clues in a problem statement that scream this pattern)
+Be practical and interview-ready. Use markdown.`,
+      `Problem:\n${fullCtx}\n\nAnalysis:\n${r1}`);
+    l2.remove();addMsg('strategy','Strategy Coach',fmt(r2));setAgent('strategy','active','done ✓');
+    document.getElementById('sc-content').innerHTML=`<div style="font-size:12px;line-height:1.7;">${fmt(r2)}</div>`;
+
+    const pattern=detectPattern(r2,fetchedP?.tags);
+
+    // AGENT 3 — Code Mentor
+    addDivider('AGENT 3 · CODE MENTOR');
+    setAgent('code','running','coding...');
+    const l3=addLoader('code','Code Mentor');
+    const r3=await callClaude(
+      `You are a Code Mentor agent for LeetCode FAANG interview prep. For a ${lvlStr}, provide:
+1. **Pseudocode** (6-9 lines, language-agnostic, reads like English)
+2. **Python solution** (clean, well-commented — explain each key block inline)
+3. **Complexity**: Time O(?) and Space O(?) with a one-sentence explanation each
+4. **Common mistakes** (2-3 bullets: off-by-one, wrong edge case handling, etc.)
+Use markdown + fenced code blocks.`,
+      `Problem:\n${fullCtx}\nStrategy:\n${r2}`);
+    l3.remove();addMsg('code','Code Mentor',fmt(r3));setAgent('code','active','done ✓');
+
+    // AGENT 4 — Resource Finder
+    addDivider('AGENT 4 · RESOURCE FINDER');
+    setAgent('resource','running','finding resources...');
+    const l4=addLoader('resource','Resource Finder');
+    const r4=await callClaude(
+      `You are a Resource Finder agent for LeetCode FAANG interview prep. Provide:
+1. **Core concept to master** — the #1 CS concept this problem teaches
+2. **7-day drill plan** — 3 specific steps to master this pattern in one week
+3. **Interview script** — exactly what to say out loud when you spot this pattern in an interview (3-4 sentences)
+4. **Common company appearances** — which FAANG/MAANG companies frequently test this pattern
+Keep it concise, actionable, interview-focused. Use markdown.`,
+      `Problem:\n${fullCtx}\nPattern:\n${r2}`);
+    l4.remove();addMsg('resource','Resource Finder',fmt(r4));setAgent('resource','active','done ✓');
+
+    populateSimilar(pattern,fetchedP?.slug);
+    populateResources();
+
+    addDivider('ANALYSIS COMPLETE');
+    addMsg('analyst','System',`✅ All 4 agents done! Check the <strong>Similar Problems</strong> tab for related questions with LeetCode links, and <strong>Resources</strong> for study materials. Ask follow-ups below.`,'sys');
+    document.getElementById('qchips').style.display='flex';
+
+    analyzed++;
+    const pct=Math.min(100,analyzed*10);
+    document.getElementById('pfill').style.width=pct+'%';
+    document.getElementById('pdone').textContent=analyzed+' analyzed';
+    document.getElementById('ppct').textContent=pct+'%';
+
+  }catch(e){
+    addMsg('analyst','System',`Error: ${e.message}`,'sys');
+    ['analyst','strategy','code','resource'].forEach(a=>setAgent(a,'','error'));
+  }
+  busy=false;btn.disabled=false;btn.textContent='⚡ Analyze with All Agents';
+}
+
+// ── Populate Tabs ─────────────────────────────────────────────────────────────
+function populateSimilar(pattern, currentSlug){
+  const dc={Easy:'#00d4aa',Medium:'#ffa94d',Hard:'#ff6b6b'};
+  const list=(SIMILAR[pattern]||SIMILAR['hash map']).filter(p=>p.lk!==currentSlug).slice(0,6);
+
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);">
+    Detected pattern: <span style="color:var(--accent);font-weight:500;">${pattern}</span> — click any problem to open on LeetCode</div>`;
+
+  if(fetchedP){
+    const c=dc[fetchedP.dif?.charAt(0).toUpperCase()+fetchedP.dif?.slice(1)]||'#ffa94d';
+    html+=`<div class="pcard"><h3>📌 Current Problem <span class="dpill" style="background:${c}22;color:${c};border:1px solid ${c}44;">${fetchedP.dif||diff}</span></h3>
+      <p><a href="https://leetcode.com/problems/${fetchedP.slug}/" target="_blank">#${fetchedP.qid} ${fetchedP.title}</a></p>
+      ${fetchedP.tags?`<p style="margin-top:5px;font-size:10px;color:var(--muted);">Tags: ${fetchedP.tags}</p>`:''}
+    </div>`;
+  }
+
+  html+=`<div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;margin-top:4px;">SAME PATTERN — PRACTICE THESE NEXT:</div>`;
+  list.forEach(p=>{
+    const c=dc[p.d]||'#ffa94d';
+    html+=`<div class="scard" onclick="window.open('https://leetcode.com/problems/${p.lk}/','_blank')">
+      <div class="snum">${p.id}</div>
+      <div class="sinfo"><h4>${p.t}</h4><p>${p.why}</p></div>
+      <div class="dpill" style="background:${c}22;color:${c};border:1px solid ${c}44;">${p.d}</div>
+    </div>`;
+  });
+
+  // Cross-pattern exploration
+  const others=Object.keys(SIMILAR).filter(k=>k!==pattern).slice(0,3);
+  html+=`<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:8px;">EXPLORE OTHER PATTERNS:</div>`;
+  others.forEach(pat=>{
+    const first=SIMILAR[pat][0];
+    const c=dc[first.d]||'#ffa94d';
+    html+=`<div class="scard" style="opacity:.65;" onclick="window.open('https://leetcode.com/problems/${first.lk}/','_blank')">
+      <div class="snum" style="color:var(--accent);font-size:9px;">${pat.slice(0,5).toUpperCase()}</div>
+      <div class="sinfo"><h4>${first.t}</h4><p>Pattern: ${pat}</p></div>
+      <div class="dpill" style="background:${c}22;color:${c};border:1px solid ${c}44;">${first.d}</div>
+    </div>`;
+  });
+
+  document.getElementById('sim-content').innerHTML=html;
+}
+
+function populateResources(){
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;font-family:var(--mono);">Top resources for FAANG/MAANG prep:</div>`;
+  RESOURCES.forEach(r=>{
+    const th=r.tags.map(t=>`<span class="rtag" style="background:${r.c}22;color:${r.c};border:1px solid ${r.c}44;">${t}</span>`).join('');
+    html+=`<div class="rc"><h4>${r.t}</h4><p>${r.d}</p><div class="rtags">${th}</div></div>`;
+  });
+  document.getElementById('res-content').innerHTML=html;
+}
+
+// ── Follow-up Chat ────────────────────────────────────────────────────────────
+async function sendMsg(){
+  const inp=document.getElementById('cinput');
+  const msg=inp.value.trim();
+  if(!msg||busy)return;
+  inp.value='';busy=true;
+  document.getElementById('sbtn').disabled=true;
+  addMsg('user','You',msg.replace(/</g,'&lt;'));
+  const l=addLoader('strategy','Coach');
+  const level=document.getElementById('lvl').value;
+  const lvlStr={beginner:'beginner',intermediate:'intermediate developer',advanced:'advanced developer'}[level];
+  const r=await callClaude(
+    `You are a LeetCode coaching assistant for a ${lvlStr} preparing for FAANG/MAANG. Problem context: ${ctx||'a LeetCode problem'}. Answer follow-up questions clearly, with examples or code when helpful. Use markdown.`,
+    msg,hist.slice(-6));
+  l.remove();addMsg('strategy','Coach',fmt(r));
+  hist.push({role:'user',content:msg},{role:'assistant',content:r});
+  busy=false;document.getElementById('sbtn').disabled=false;
+}
+
+function askQ(t){document.getElementById('cinput').value=t;sendMsg();}
+
+// Init
+document.getElementById('tab-analysis').style.display='flex';
+</script>
+</body>
+</html>
